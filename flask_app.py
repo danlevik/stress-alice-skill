@@ -59,7 +59,6 @@ def handle_dialog(res, req):
                                   'В игровом режиме пользователь отвечает на вопросы до тех пор, пока не совершит 3 ошибки. ' \
                                   'После этого игра заканчивается и выводится количество правильных ответов.'
 
-
     elif sessionStorage[user_id]['first_name'] is None:
         first_name = get_first_name(req)
         if first_name is None:
@@ -357,7 +356,7 @@ def game_func(res, req, first_try=False):
             what_stress = choice(diversity.what_stress)
             good_ans = choice(diversity.good_answers)
             sessionStorage[user_id]['now_word'] = word
-            sessionStorage[user_id]["training_good"] += 1
+            sessionStorage[user_id]["game_mode_good"] += 1
             res['response']['text'] = f'{good_ans} \U0001F929\n{what_stress}: {word[1]}'
             res['response']['tts'] = f'{good_ans} {what_stress}?'
             res['response']['buttons'] = make_buttons(word)
