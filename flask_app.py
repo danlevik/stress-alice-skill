@@ -392,7 +392,7 @@ def game_func(res, req, first_try=False):
         elif req['request']['original_utterance'] != sessionStorage[user_id]['now_word'][0]:
             word = choice(words)
             bad_ans = choice(diversity.bad_answers)
-            what_good_ans = choice(diversity.good_answers)
+            what_good_ans = choice(diversity.what_good_answer)
             what_stress = choice(diversity.what_stress)
 
             sessionStorage[user_id]['health'] -= 1
