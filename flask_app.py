@@ -401,7 +401,6 @@ def game_func(res, req, first_try=False):
                                         '{}: {}'.format(sessionStorage[user_id]["health"] * '\U0001F9E1', what_stress, word[1])
             res['response']['tts'] = '{}! Осталось попыток: {}. {}?'.format(bad_ans, sessionStorage[user_id]["health"], what_stress)
             res['response']['buttons'] = make_buttons(word)
-            sessionStorage[user_id]['now_word'] = word
 
             if sessionStorage[user_id]["health"] == 0:
                 res['response']['text'] = f'{bad_ans} {what_good_ans}: {sessionStorage[user_id]["now_word"][0]}\n' \
@@ -426,6 +425,8 @@ def game_func(res, req, first_try=False):
                         'hide': True
                     }
                 ]
+                return 
+            sessionStorage[user_id]['now_word'] = word
 
 
 def make_buttons(word):
