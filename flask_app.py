@@ -63,6 +63,7 @@ def handle_dialog(res, req):
         first_name = get_first_name(req)
         if first_name is None:
             res['response']['text'] = 'Это не похоже на имя. Повтори, пожалуйста!'
+            return
         else:
 
             sessionStorage[user_id]['first_name'] = first_name
@@ -84,6 +85,7 @@ def handle_dialog(res, req):
                     'hide': True
                 }
             ]
+            return
     else:
         # У нас уже есть имя, и теперь мы ожидаем ответ на предложение.
         if sessionStorage[user_id]['training']:
@@ -115,6 +117,7 @@ def handle_dialog(res, req):
                         'hide': True
                     }
                 ]
+                return
             elif 'игра' in req['request']['nlu']['tokens']:
 
                 sessionStorage[user_id]['game_mode_prepare'] = True
@@ -134,10 +137,12 @@ def handle_dialog(res, req):
                         'hide': True
                     }
                 ]
+                return
 
             elif 'прощай' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Хорошо. До свидания!'
                 res['response']['end_session'] = True
+                return
             else:
                 res['response']['text'] = f'Я тебя не понимаю, {sessionStorage[user_id]["first_name"].title()}.\n' \
                                           f'Напиши "Тренировка" для тренировочного режима, "Игра" для игрового режима ' \
@@ -156,6 +161,7 @@ def handle_dialog(res, req):
                         'hide': True
                     }
                 ]
+                return
 
 
         # пользователь увидел информацию о тренировочном режиме
@@ -178,12 +184,14 @@ def handle_dialog(res, req):
                 ]
 
                 sessionStorage[user_id]['training_prepare'] = False
+                return
 
             elif 'да' in req['request']['original_utterance'].lower():
 
                 sessionStorage[user_id]['training'] = True
 
                 training_func(res, req, first_try=True)
+                return
 
             else:
                 res['response']['text'] = f'Я тебя не понимаю, {sessionStorage[user_id]["first_name"].title()}. ' \
@@ -198,6 +206,7 @@ def handle_dialog(res, req):
                         'hide': True
                     }
                 ]
+                return
 
         # пользователь увидел информацию об игровом режиме
         elif sessionStorage[user_id]['game_mode_prepare']:
@@ -219,12 +228,14 @@ def handle_dialog(res, req):
                 ]
 
                 sessionStorage[user_id]['game_mode_prepare'] = False
+                return
 
             elif 'да' in req['request']['original_utterance'].lower():
 
                 sessionStorage[user_id]['game_mode'] = True
 
                 game_func(res, req, first_try=True)
+                return
 
             else:
                 res['response']['text'] = f'Я тебя не понимаю, {sessionStorage[user_id]["first_name"].title()}. ' \
@@ -239,6 +250,7 @@ def handle_dialog(res, req):
                         'hide': True
                     }
                 ]
+                return
 
 
 def training_func(res, req, first_try=False):
