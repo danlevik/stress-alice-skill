@@ -34,7 +34,7 @@ def main():
 def handle_dialog(res, req):
     user_id = req['session']['user_id']
     if req['session']['new']:
-        res['response']['text'] = 'Привет! Назови своё имя!'
+        res['response']['text'] = 'Привет! Я помогу тебе подготовиться к заданию №4 ЕГЭ по русскому языку.\nКак тебя зовут?'
         sessionStorage[user_id] = {
             'first_name': None,
             'training_prepare': False,
@@ -62,14 +62,13 @@ def handle_dialog(res, req):
     elif sessionStorage[user_id]['first_name'] is None:
         first_name = get_first_name(req)
         if first_name is None:
-            res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
+            res['response']['text'] = 'Это не похоже на имя. Повтори, пожалуйста!'
         else:
 
             sessionStorage[user_id]['first_name'] = first_name
 
             res['response']['text'] = f'Приятно познакомиться, {sessionStorage[user_id]["first_name"].title()}! ' \
-                                      f'Я помогу тебе подготовиться к ЕГЭ по русскому языку, ' \
-                                      f'а именно к заданию №4 на ударения \U0001F603.\nПопробуй игровой режим или режим тренировки. ' \
+                                      f'Попробуй режим тренировки или игровой режим.\n' \
                                       f'Для этого напиши "Тренировка" или "Игра".'
             res['response']['buttons'] = [
                 {
@@ -250,6 +249,7 @@ def training_func(res, req, first_try=False):
         sessionStorage[user_id]['now_word'] = word
 
         res['response']['text'] = f'Какое ударение в слове: {word[1]}'
+        res['response']['tts'] = 'Какое ударение в слове?'
         res['response']['buttons'] = make_buttons(word)
     else:
         # выход из тренировочного режима
@@ -283,6 +283,7 @@ def training_func(res, req, first_try=False):
             sessionStorage[user_id]['now_word'] = word
             sessionStorage[user_id]["training_good"] += 1
             res['response']['text'] = f'Верно, молодец! \U0001F929\nКакое ударение в слове: {word[1]}'
+            res['response']['tts'] = 'Верно, молодец! Какое ударение в слове?'
             res['response']['buttons'] = make_buttons(word)
 
         # слово отличается от необходимого
@@ -304,8 +305,9 @@ def training_func(res, req, first_try=False):
         elif req['request']['original_utterance'] != sessionStorage[user_id]['now_word'][0]:
             word = choice(words)
             sessionStorage[user_id]["training_wrong"] += 1
-            res['response']['text'] = f'Неправильное ударение!\U0001F615 Верный ответ: {sessionStorage[user_id]["now_word"][0]}\n' \
+            res['response']['text'] = f'Неправильно!\U0001F615 Верный ответ: {sessionStorage[user_id]["now_word"][0]}\n' \
                                       f'Какое ударение в слове: {word[1]}'
+            res['response']['tts'] = 'Неправильно! Какое ударение в слове?'
             res['response']['buttons'] = make_buttons(word)
             sessionStorage[user_id]['now_word'] = word
 
@@ -318,6 +320,7 @@ def game_func(res, req, first_try=False):
         sessionStorage[user_id]['now_word'] = word
 
         res['response']['text'] = f'Какое ударение в слове: {word[1]}'
+        res['response']['tts'] = 'Какое ударение в слове?'
         res['response']['buttons'] = make_buttons(word)
     else:
         # выход из игрового режима
@@ -348,6 +351,7 @@ def game_func(res, req, first_try=False):
             sessionStorage[user_id]['now_word'] = word
             sessionStorage[user_id]["game_mode_good"] += 1
             res['response']['text'] = f'Верно, молодец! \U0001F929\nКакое ударение в слове: {word[1]}'
+            res['response']['tts'] = 'Верно, молодец! Какое ударение в слове?'
             res['response']['buttons'] = make_buttons(word)
 
         # слово отличается от необходимого
@@ -369,16 +373,18 @@ def game_func(res, req, first_try=False):
         elif req['request']['original_utterance'] != sessionStorage[user_id]['now_word'][0]:
             word = choice(words)
             sessionStorage[user_id]['health'] -= 1
-            res['response']['text'] = f'Неправильное ударение!\U0001F615\nВерный ответ: {sessionStorage[user_id]["now_word"][0]}\n'\
+            res['response']['text'] = f'Неправильно!\U0001F615\nВерный ответ: {sessionStorage[user_id]["now_word"][0]}\n'\
                                       + 'Осталось попыток: {}\n' \
                                         'Какое ударение в слове: {}'.format(sessionStorage[user_id]["health"] * '\U0001F9E1', word[1])
+            res['response']['tts'] = 'Неправильно! Осталось попыток: {}. Какое ударение в слове?'.format(sessionStorage[user_id]["health"])
             res['response']['buttons'] = make_buttons(word)
             sessionStorage[user_id]['now_word'] = word
 
             if sessionStorage[user_id]["health"] == 0:
-                res['response']['text'] = f'Неправильное ударение! Верный ответ: {sessionStorage[user_id]["now_word"][0]}\n' \
+                res['response']['text'] = f'Неправильно! Верный ответ: {sessionStorage[user_id]["now_word"][0]}\n' \
                                           f'Попытки закончились. Конец игры!\n' \
                                           f'Ты верно ответил на {sessionStorage[user_id]["game_mode_good"]} вопросов, молодец!'
+                res['response']['tts'] = 'Неправильно! Конец игры!'
                 sessionStorage[user_id]['game_mode'] = False
                 sessionStorage[user_id]['game_mode_prepare'] = False
                 sessionStorage[user_id]["game_mode_good"] = 0
