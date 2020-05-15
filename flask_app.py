@@ -425,7 +425,6 @@ def game_func(res, req, first_try=False):
                         'hide': True
                     }
                 ]
-                return 
             sessionStorage[user_id]['now_word'] = word
 
 
