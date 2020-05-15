@@ -2,6 +2,7 @@ from flask import Flask, request
 import logging
 import json
 from random import choice
+from WebServerAPI import diversity
 import csv
 app = Flask(__name__)
 
@@ -139,8 +140,8 @@ def handle_dialog(res, req):
                 res['response']['text'] = 'Хорошо. До свидания!'
                 res['response']['end_session'] = True
             else:
-                res['response']['text'] = f'Я Вас не понимаю, {sessionStorage[user_id]["first_name"].title()}.\n' \
-                                          f'Напишите "Тренировка" для тренировочного режима, "Игра" для игрового режима ' \
+                res['response']['text'] = f'Я тебя не понимаю, {sessionStorage[user_id]["first_name"].title()}.\n' \
+                                          f'Напиши "Тренировка" для тренировочного режима, "Игра" для игрового режима ' \
                                           f'или "Прощай", чтобы закончить диалог'
                 res['response']['buttons'] = [
                     {
@@ -246,10 +247,10 @@ def training_func(res, req, first_try=False):
 
     if first_try:
         word = choice(words)
+        what_stress = choice(diversity.what_stress)
         sessionStorage[user_id]['now_word'] = word
-
-        res['response']['text'] = f'Какое ударение в слове: {word[1]}'
-        res['response']['tts'] = 'Какое ударение в слове?'
+        res['response']['text'] = f'{what_stress}: {word[1]}'
+        res['response']['tts'] = f'{what_stress}?'
         res['response']['buttons'] = make_buttons(word)
     else:
         # выход из тренировочного режима
@@ -280,10 +281,12 @@ def training_func(res, req, first_try=False):
         # верный ответ
         elif req['request']['original_utterance'] == sessionStorage[user_id]['now_word'][0]:
             word = choice(words)
+            what_stress = choice(diversity.what_stress)
+            good_ans = choice(diversity.good_answers)
             sessionStorage[user_id]['now_word'] = word
             sessionStorage[user_id]["training_good"] += 1
-            res['response']['text'] = f'Верно, молодец! \U0001F929\nКакое ударение в слове: {word[1]}'
-            res['response']['tts'] = 'Верно, молодец! Какое ударение в слове?'
+            res['response']['text'] = f'{good_ans} \U0001F929\n{what_stress}: {word[1]}'
+            res['response']['tts'] = f'{good_ans} {what_stress}?'
             res['response']['buttons'] = make_buttons(word)
 
         # слово отличается от необходимого
@@ -304,10 +307,13 @@ def training_func(res, req, first_try=False):
         # неправильное ударение
         elif req['request']['original_utterance'] != sessionStorage[user_id]['now_word'][0]:
             word = choice(words)
+            bad_ans = choice(diversity.bad_answers)
+            what_good_ans = choice(diversity.what_good_answer)
+            what_stress = choice(diversity.what_stress)
             sessionStorage[user_id]["training_wrong"] += 1
-            res['response']['text'] = f'Неправильно!\U0001F615 Верный ответ: {sessionStorage[user_id]["now_word"][0]}\n' \
-                                      f'Какое ударение в слове: {word[1]}'
-            res['response']['tts'] = 'Неправильно! Какое ударение в слове?'
+            res['response']['text'] = f'{bad_ans}\U0001F615 {what_good_ans}: {sessionStorage[user_id]["now_word"][0]}\n' \
+                                      f'{what_stress}: {word[1]}'
+            res['response']['tts'] = f'{bad_ans}! {what_stress}?'
             res['response']['buttons'] = make_buttons(word)
             sessionStorage[user_id]['now_word'] = word
 
@@ -318,9 +324,9 @@ def game_func(res, req, first_try=False):
     if first_try:
         word = choice(words)
         sessionStorage[user_id]['now_word'] = word
-
-        res['response']['text'] = f'Какое ударение в слове: {word[1]}'
-        res['response']['tts'] = 'Какое ударение в слове?'
+        what_stress = choice(diversity.what_stress)
+        res['response']['text'] = f'{what_stress}: {word[1]}'
+        res['response']['tts'] = f'{what_stress}?'
         res['response']['buttons'] = make_buttons(word)
     else:
         # выход из игрового режима
@@ -348,10 +354,12 @@ def game_func(res, req, first_try=False):
         # верный ответ
         elif req['request']['original_utterance'] == sessionStorage[user_id]['now_word'][0]:
             word = choice(words)
+            what_stress = choice(diversity.what_stress)
+            good_ans = choice(diversity.good_answers)
             sessionStorage[user_id]['now_word'] = word
-            sessionStorage[user_id]["game_mode_good"] += 1
-            res['response']['text'] = f'Верно, молодец! \U0001F929\nКакое ударение в слове: {word[1]}'
-            res['response']['tts'] = 'Верно, молодец! Какое ударение в слове?'
+            sessionStorage[user_id]["training_good"] += 1
+            res['response']['text'] = f'{good_ans} \U0001F929\n{what_stress}: {word[1]}'
+            res['response']['tts'] = f'{good_ans} {what_stress}?'
             res['response']['buttons'] = make_buttons(word)
 
         # слово отличается от необходимого
@@ -372,16 +380,20 @@ def game_func(res, req, first_try=False):
         # неправильное ударение
         elif req['request']['original_utterance'] != sessionStorage[user_id]['now_word'][0]:
             word = choice(words)
+            bad_ans = choice(diversity.bad_answers)
+            what_good_ans = choice(diversity.good_answers)
+            what_stress = choice(diversity.what_stress)
+
             sessionStorage[user_id]['health'] -= 1
-            res['response']['text'] = f'Неправильно!\U0001F615\nВерный ответ: {sessionStorage[user_id]["now_word"][0]}\n'\
+            res['response']['text'] = f'{bad_ans} \U0001F615\n{what_good_ans}: {sessionStorage[user_id]["now_word"][0]}\n'\
                                       + 'Осталось попыток: {}\n' \
-                                        'Какое ударение в слове: {}'.format(sessionStorage[user_id]["health"] * '\U0001F9E1', word[1])
-            res['response']['tts'] = 'Неправильно! Осталось попыток: {}. Какое ударение в слове?'.format(sessionStorage[user_id]["health"])
+                                        '{}: {}'.format(sessionStorage[user_id]["health"] * '\U0001F9E1', what_stress, word[1])
+            res['response']['tts'] = '{}! Осталось попыток: {}. {}?'.format(bad_ans, sessionStorage[user_id]["health"], what_stress)
             res['response']['buttons'] = make_buttons(word)
             sessionStorage[user_id]['now_word'] = word
 
             if sessionStorage[user_id]["health"] == 0:
-                res['response']['text'] = f'Неправильно! Верный ответ: {sessionStorage[user_id]["now_word"][0]}\n' \
+                res['response']['text'] = f'{bad_ans} {what_good_ans}: {sessionStorage[user_id]["now_word"][0]}\n' \
                                           f'Попытки закончились. Конец игры!\n' \
                                           f'Ты верно ответил на {sessionStorage[user_id]["game_mode_good"]} вопросов, молодец!'
                 res['response']['tts'] = 'Неправильно! Конец игры!'
